@@ -1,0 +1,25 @@
+# Ana kosu konfigurasyonu (referans mimarideki qa-web.yaml kalibi).
+# Buradaki degerler env/default/default.properties'i EZER;
+# -D system property ve ortam degiskenleri ise her ikisini de ezer.
+
+browserType: CHROME            # simdilik yalniz CHROME destekli
+headless: false
+headlessWindowSize: 1920,1080
+
+pageTimeOut: 40                # saniye -> pageLoadTimeout
+explicitTimeOut: 15            # saniye -> WebDriverWait
+pollingTime: 500               # ms (WebDriverWait varsayilan yoklamasi)
+implicitlyTimeOut: 0           # BILEREK 0: implicit+explicit karisimi yasak (proje kurali)
+
+# Ortam URL'leri; hangisinin kullanilacagini 'env' secer (test/prep/live)
+env: test
+testUrl: https://www.hepsiburada.com
+prepUrl: https://www.hepsiburada.com
+liveUrl: https://www.hepsiburada.com
+
+waitPageLoad: true
+language: tr
+
+# true: Chrome'un yerli "otomatik test yazilimi tarafindan kontrol ediliyor"
+# bilgi cubugu gorunur (referans projedeki gibi).
+showAutomationInfobar: true

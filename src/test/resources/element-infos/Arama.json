@@ -1,0 +1,26 @@
+[
+  {
+    "key": "txt_search",
+    "type": "css",
+    "value": "[data-test-id='search-bar-input']",
+    "description": "Arama kutusu (aktivasyonla gercek input'a swap edilir)"
+  },
+  {
+    "key": "grid_search_results",
+    "type": "xpath",
+    "value": "//li[@type='cozy']/parent::ul",
+    "description": "Urun grid konteyneri"
+  },
+  {
+    "key": "card_search_product",
+    "type": "css",
+    "value": "li[type='cozy']",
+    "description": "Tek bir urun karti"
+  },
+  {
+    "key": "link_product_in_card",
+    "type": "css",
+    "value": "a[title][href*='-p-']",
+    "description": "Kart icindeki urun linki; urun adi title attribute'unda (karta GORELI aranir)"
+  }
+]

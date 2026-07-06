@@ -1,0 +1,9 @@
+# Tarayici acilis argumanlari (referans mimarideki browser-options.yaml kalibi).
+# DriverFactory bu listeyi okur; argumana eklemek icin kod derlemek gerekmez.
+
+chrome:
+  args:
+    - --disable-blink-features=AutomationControlled
+    - --disable-notifications
+    - --start-maximized
+    - --lang=tr-TR

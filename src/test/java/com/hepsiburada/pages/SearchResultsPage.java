@@ -1,8 +1,9 @@
 package com.hepsiburada.pages;
 
+import com.hepsiburada.utils.ElementRepository;
 import org.openqa.selenium.By;
 import org.openqa.selenium.ElementClickInterceptedException;
-import org.openqa.selenium.ElementNotInteractableException;
+import org.openqa.selenium.InvalidElementStateException;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.StaleElementReferenceException;
@@ -17,18 +18,18 @@ import java.util.Set;
 /**
  * Arama ve sonuc grid'i.
  *
- * "Ikinci satirdaki ilk urun" hesabi: 1920x1080 cozunurlukte grid 4 kolon
- * kabul edilir (dogrulanmis varsayim); urun kartlari DUZ liste olarak alinir,
- * yalnizca GORUNUR kartlar sayilir -> 2. satir 1. urun = index 4.
- * Dinamik class adlari (productCard-module-* vb.) bilerek kullanilmadi.
+ * "Ikinci satirdaki ilk urun" secimi kolon sayisi VARSAYILMADAN, kartlarin
+ * ekrandaki Y koordinatindan tespit edilir (bkz. getSecondRowFirstVisibleProductCard):
+ * boylece cozunurluk/kolon degisse de dogru kart secilir. Yalnizca gorunur ve
+ * icinde urun linki olan kartlar sayilir; dinamik class adlari kullanilmaz.
  */
 public class SearchResultsPage extends BasePage {
 
-    private static final By SEARCH_INPUT = By.cssSelector("[data-test-id='search-bar-input']");
-    private static final By PRODUCT_CARDS = By.cssSelector("li[type='cozy']");
-    private static final By PRODUCT_GRID_CONTAINER = By.xpath("//li[@type='cozy']/parent::ul");
-    /** Kart icindeki urun linki; urun adi bu linkin title attribute'undadir. */
-    private static final By PRODUCT_LINK_IN_CARD = By.cssSelector("a[title][href*='-p-']");
+    // Locator'lar element-infos/Arama.json deposunda.
+    private static final By SEARCH_INPUT = ElementRepository.by("txt_search");
+    private static final By PRODUCT_CARDS = ElementRepository.by("card_search_product");
+    private static final By PRODUCT_GRID_CONTAINER = ElementRepository.by("grid_search_results");
+    private static final By PRODUCT_LINK_IN_CARD = ElementRepository.by("link_product_in_card");
 
     /** Grid dolana kadar beklenecek asgari gorunur kart sayisi. */
     private static final int MIN_VISIBLE_CARDS = 5;
@@ -82,7 +83,7 @@ public class SearchResultsPage extends BasePage {
                 // Deger yerlesmemis: temizleyip bastan dene.
                 freshBox.clear();
             } catch (StaleElementReferenceException
-                     | org.openqa.selenium.InvalidElementStateException e) {
+                     | InvalidElementStateException e) {
                 // InvalidElementState, ElementNotInteractable'i da kapsar (ust sinifi).
                 // Gecici swap belirtileri: yeniden dene. Baska her hata aninda firlar.
                 if (attempt == maxAttempts) {

@@ -52,26 +52,24 @@ public final class DriverFactory {
     private static ChromeOptions buildChromeOptions() {
         ChromeOptions options = new ChromeOptions();
 
-        // --- Otomasyon izlerini azaltma ---
-        // navigator.webdriver bayragini ve "Chrome is being controlled..." cubugunu kaldirir.
-        options.addArguments("--disable-blink-features=AutomationControlled");
-        options.setExperimentalOption("excludeSwitches", List.of("enable-automation"));
-        options.setExperimentalOption("useAutomationExtension", false);
+        // Acilis argumanlari browser-options.yaml'dan okunur (referans mimari):
+        // yeni arguman eklemek icin kod derlemek gerekmez.
+        loadBrowserArgs().forEach(options::addArguments);
 
-        // --- Popup / bildirim gurultusunu kapatma ---
-        options.addArguments("--disable-notifications");
+        options.setExperimentalOption("useAutomationExtension", false);
+        // showAutomationInfobar=true (qa-web.yaml) ise Chrome'un yerli
+        // "otomatik test yazilimi tarafindan kontrol ediliyor" cubugu GORUNUR;
+        // false ise eski davranis (cubuk gizli, bot izi azaltilmis) korunur.
+        if (!Boolean.parseBoolean(String.valueOf(ConfigReader.get("show.automation.infobar")))) {
+            options.setExperimentalOption("excludeSwitches", List.of("enable-automation"));
+        }
         Map<String, Object> prefs = new HashMap<>();
         prefs.put("profile.default_content_setting_values.notifications", 2); // 2 = engelle
         prefs.put("credentials_enable_service", false);            // "sifreyi kaydet?" balonu
         prefs.put("profile.password_manager_enabled", false);
         options.setExperimentalOption("prefs", prefs);
 
-        // Pencere ekrani kaplasin: sabit --window-size, Windows olceklemesiyle
-        // ekrandan tasip "kayik" gorunum yaratabiliyordu (2026-07-06 gozlemi).
-        // Satir tespiti Y-koordinat tabanli oldugundan cozunurluk bagimsizligi
-        // zaten garanti; maximize etmek guvenli.
-        options.addArguments("--start-maximized");
-        options.addArguments("--lang=tr-TR");
+        // (--start-maximized, --lang vb. argumanlar browser-options.yaml'a tasindi)
 
         // UA sadece config'te ACIKCA verilmisse ezilir. Varsayilan bos:
         // sahte UA, gercek tarayici parmak iziyle celisirse tespiti kolaylastirir.
@@ -98,6 +96,27 @@ public final class DriverFactory {
             options.addArguments("--headless=new");
         }
         return options;
+    }
+
+    /** browser-options.yaml -> chrome.args listesi (dosya/anahtar yoksa bos liste). */
+    @SuppressWarnings("unchecked")
+    private static List<String> loadBrowserArgs() {
+        java.nio.file.Path file = java.nio.file.Path.of("src", "test", "resources", "browser-options.yaml");
+        if (!java.nio.file.Files.exists(file)) {
+            return List.of();
+        }
+        try (java.io.InputStream in = java.nio.file.Files.newInputStream(file)) {
+            Map<String, Object> yaml = new org.yaml.snakeyaml.Yaml().load(in);
+            if (yaml == null || !(yaml.get("chrome") instanceof Map<?, ?> chrome)) {
+                return List.of();
+            }
+            Object args = ((Map<String, Object>) chrome).get("args");
+            return args instanceof List<?> list
+                    ? list.stream().map(String::valueOf).toList()
+                    : List.of();
+        } catch (java.io.IOException e) {
+            throw new IllegalStateException("browser-options.yaml okunamadi: " + file.toAbsolutePath(), e);
+        }
     }
 
     public static WebDriver getDriver() {

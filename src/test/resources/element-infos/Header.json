@@ -1,0 +1,14 @@
+[
+  {
+    "key": "link_header_cart",
+    "type": "css",
+    "value": "a[href*='/sepetim']",
+    "description": "Header'daki Sepetim baglantisi (tam URL bilerek sabitlenmedi)"
+  },
+  {
+    "key": "badge_cart_item_count",
+    "type": "id",
+    "value": "cartItemCount",
+    "description": "Header'daki sepet urun adedi rozeti"
+  }
+]

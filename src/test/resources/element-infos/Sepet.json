@@ -1,0 +1,26 @@
+[
+  {
+    "key": "card_cart_item",
+    "type": "css",
+    "value": "#onboarding_item_list li[data-listingid][data-sku]",
+    "description": "Sepetteki urun karti (UUID id / data-sku sabitlenmez)"
+  },
+  {
+    "key": "link_cart_item_product",
+    "type": "css",
+    "value": "a[href*='-p-']",
+    "description": "Kart icindeki urun linki (karta GORELI aranir)"
+  },
+  {
+    "key": "btn_cart_item_delete",
+    "type": "xpath",
+    "value": ".//*[self::button or self::a][@aria-label='Sepetten Çıkar' or contains(@aria-label,'Sil') or starts-with(@class,'delete_button') or normalize-space()='Sil']",
+    "description": "Kart icindeki silme aksiyonu (2026-07-06 canli teshisle dogrulandi: a[aria-label='Sepetten Çıkar'])"
+  },
+  {
+    "key": "btn_delete_confirm",
+    "type": "xpath",
+    "value": "//button[normalize-space()='Sil']",
+    "description": "Silme onay diyalogundaki Sil butonu"
+  }
+]

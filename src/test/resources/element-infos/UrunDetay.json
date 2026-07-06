@@ -1,0 +1,38 @@
+[
+  {
+    "key": "lbl_product_title",
+    "type": "css",
+    "value": "[data-test-id='title-area'] h1[data-test-id='title']",
+    "description": "Urun detay sayfasi basligi"
+  },
+  {
+    "key": "btn_add_to_cart",
+    "type": "css",
+    "value": "[data-test-id='add-to-cart'] button[data-test-id='addToCart']",
+    "description": "Ana Sepete Ekle butonu"
+  },
+  {
+    "key": "lbl_added_confirmation",
+    "type": "xpath",
+    "value": "//div[starts-with(@id,'AddToCart_')]//span[normalize-space()='Ürün sepetinizde']",
+    "description": "Sepete eklendi onay mesaji (UUID'li id starts-with ile)"
+  },
+  {
+    "key": "btn_confirmation_continue",
+    "type": "xpath",
+    "value": "//div[starts-with(@id,'AddToCart_')]//button[normalize-space()='Alışverişe devam et']",
+    "description": "Onay panelini kapatan Alisverise devam et"
+  },
+  {
+    "key": "lbl_recommended_modal_warning",
+    "type": "xpath",
+    "value": "//*[contains(normalize-space(.),'tedarik edilemiyor') and not(.//*[contains(normalize-space(.),'tedarik edilemiyor')])]",
+    "description": "Onerilen satici modalinin uyari metni (en kucuk/yaprak eleman; dinamik checkoutui-* class'lari bilerek kullanilmadi)"
+  },
+  {
+    "key": "btn_recommended_modal_add",
+    "type": "xpath",
+    "value": "//*[contains(normalize-space(.),'tedarik edilemiyor') and not(.//*[contains(normalize-space(.),'tedarik edilemiyor')])]/ancestor::*[.//button[normalize-space()='Sepete Ekle']][1]//button[normalize-space()='Sepete Ekle']",
+    "description": "Onerilen satici modalindaki Sepete Ekle (uyari metnine en yakin ortak atadan)"
+  }
+]

@@ -1,0 +1,38 @@
+[
+  {
+    "key": "area_header_account",
+    "type": "css",
+    "value": "[data-test-id='account']",
+    "description": "Header'daki hesap/Giris Yap alani"
+  },
+  {
+    "key": "txt_username",
+    "type": "id",
+    "value": "txtUserName",
+    "description": "Login e-posta/telefon girisi"
+  },
+  {
+    "key": "btn_login",
+    "type": "css",
+    "value": "button#btnLogin",
+    "description": "E-posta adimindaki devam / sifre adimindaki giris butonu (ayni id)"
+  },
+  {
+    "key": "txt_password",
+    "type": "css",
+    "value": "input#txtPassword",
+    "description": "Sifre girisi (ayni id'li farkli tip elemana karsi input ile sinirli)"
+  },
+  {
+    "key": "lbl_account_logged_in",
+    "type": "css",
+    "value": "a[data-test-id='account'][title='Hesabım']",
+    "description": "Login sonrasi header'daki Hesabim alani (basari kaniti)"
+  },
+  {
+    "key": "link_account_menu_login",
+    "type": "xpath",
+    "value": "//*[self::a or self::button][normalize-space()='Giriş Yap']",
+    "description": "Hesap menusu acildiginda icindeki Giris Yap satiri"
+  }
+]

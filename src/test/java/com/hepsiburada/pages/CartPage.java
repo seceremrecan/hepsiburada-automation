@@ -1,10 +1,13 @@
 package com.hepsiburada.pages;
 
+import com.hepsiburada.utils.ElementRepository;
 import com.hepsiburada.utils.TextNormalizer;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,28 +20,12 @@ import java.util.List;
  */
 public class CartPage extends BasePage {
 
-    private static final By CART_ITEMS =
-            By.cssSelector("#onboarding_item_list li[data-listingid][data-sku]");
+    // Locator'lar element-infos/Sepet.json deposunda.
+    private static final By CART_ITEMS = ElementRepository.by("card_cart_item");
     /** Kart ICINDE relative aranir; tum sayfadan aranmaz. */
-    private static final By ITEM_PRODUCT_LINK = By.cssSelector("a[href*='-p-']");
-    /**
-     * Kart icindeki silme aksiyonu. 2026-07-06 canli teshis kosusunda dogrulandi:
-     * <a aria-label="Sepetten Çıkar" class="delete_button_...">. Yedek olarak
-     * 'Sil' metin/etiket varyantlari ve delete_button class oneki de kapsanir.
-     */
-    private static final By ITEM_DELETE_BUTTON = By.xpath(
-            ".//*[self::button or self::a]"
-                    + "[@aria-label='Sepetten Çıkar'"
-                    + " or contains(@aria-label,'Sil')"
-                    + " or starts-with(@class,'delete_button')"
-                    + " or normalize-space()='Sil']");
-    /**
-     * Silme tiklamasi sonrasi cikan onay diyalogundaki "Sil" butonu
-     * (2026-07-06 kosusunun screenshot'indan dogrulandi: "Urunu sepetten
-     * cikarmak istedigine emin misin?" + Sil / Vazgec).
-     */
-    private static final By DELETE_CONFIRM_BUTTON =
-            By.xpath("//button[normalize-space()='Sil']");
+    private static final By ITEM_PRODUCT_LINK = ElementRepository.by("link_cart_item_product");
+    private static final By ITEM_DELETE_BUTTON = ElementRepository.by("btn_cart_item_delete");
+    private static final By DELETE_CONFIRM_BUTTON = ElementRepository.by("btn_delete_confirm");
 
     public CartPage(WebDriver driver) {
         super(driver);
@@ -79,28 +66,18 @@ public class CartPage extends BasePage {
             }
             List<WebElement> deleteButtons = target.findElements(ITEM_DELETE_BUTTON);
             if (deleteButtons.isEmpty()) {
-                // Teshis: locator eslesmediyse karttaki TUM tiklanabilir ogeleri
-                // ozetle loga bas; dogru secici buradan okunarak guncellenir.
-                for (WebElement el : target.findElements(By.xpath(".//a | .//button"))) {
-                    System.err.println("[CartPage][teshis] tag=" + el.getTagName()
-                            + " aria-label=" + el.getAttribute("aria-label")
-                            + " class=" + el.getAttribute("class")
-                            + " data-test-id=" + el.getAttribute("data-test-id")
-                            + " id=" + el.getAttribute("id")
-                            + " text=" + el.getText().replaceAll("\\s+", " ").trim());
-                }
                 throw new IllegalStateException(
-                        "Sepet kartinda 'Sil' butonu bulunamadi; ITEM_DELETE_BUTTON locator'i "
-                                + "gercek DOM'a gore guncellenmeli (konsoldaki teshis satirlarina bakin).");
+                        "Sepet kartinda silme butonu bulunamadi; element-infos/Sepet.json'daki "
+                                + "'btn_cart_item_delete' locator'i gercek DOM'a gore guncellenmeli.");
             }
             scrollIntoCenter(deleteButtons.get(0));
             deleteButtons.get(0).click();
             // Onay diyalogu cikarsa "Sil" ile onayla (kisa bekleme; cikmazsa gec).
-            if (waits.isVisibleWithin(DELETE_CONFIRM_BUTTON, java.time.Duration.ofSeconds(3))) {
+            if (waits.isVisibleWithin(DELETE_CONFIRM_BUTTON, Duration.ofSeconds(3))) {
                 waits.clickable(DELETE_CONFIRM_BUTTON).click();
             }
             // Kart DOM'dan dusene kadar bekle; sayaci ondan sonra artir.
-            waits.until(org.openqa.selenium.support.ui.ExpectedConditions.stalenessOf(target));
+            waits.until(ExpectedConditions.stalenessOf(target));
             removed++;
             dismissPopups(); // silme sonrasi cikabilecek onay/toast katmanlari
         }

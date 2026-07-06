@@ -1,0 +1,25 @@
+# Basariyla Email <email> ve Sifre <sifre> Ile Giris Yapilir
+* Ana sayfayi ac
+* Giris yap sayfasina git
+* Email <email> ve sifre <sifre> ile giris yap
+* Girisin basarili oldugunu dogrula
+
+# Arama Kutusuna <kelime> Yazilir ve Arama Baslatilir
+* Arama kutusuna <kelime> yazip aramayi baslat
+
+# Arama Sonuclarinin <kelime> Icin Yuklendigi Dogrulanir
+* Arama sonuclarinin <kelime> icin yuklendigini dogrula
+
+# Ikinci Satirdaki Ilk Urun Secilir ve Urun Sayfasina Gidilir
+* Ikinci satirdaki ilk urunu belirle
+* Belirlenen urune tikla ve urun detay sayfasina gidildigini dogrula
+
+# Urun Sepete Eklenir ve Onay Mesaji Dogrulanir
+* Urunu sepete ekle ve eklendigine dair onay mesajini dogrula
+
+# Sepete Gidilir ve Urunun Sepette Oldugu Dogrulanir
+* Header uzerinden sepete git
+* Eklenen urunun sepette oldugunu dogrula
+
+# Sepet Temizlenir
+* Eklenen urunu sepetten sil ve sepetin temizlendigini dogrula

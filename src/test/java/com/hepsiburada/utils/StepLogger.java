@@ -18,11 +18,19 @@ public final class StepLogger {
     }
 
     public static void log(String message) {
-        System.out.println("[" + LocalTime.now().format(TS) + "] [HB-TC01] " + message);
+        console("INFO  " + message);
         try {
             Gauge.writeMessage(message);
         } catch (RuntimeException | LinkageError e) {
             // Gauge baglami yoksa (or. duz JUnit kosusu) konsol logu yeterli.
         }
+    }
+
+    /**
+     * Yalnizca konsola yazar (HTML raporuna mesaj eklemez). Adim yasam dongusu
+     * loglari gibi yuksek hacimli satirlar icin — rapor temiz kalir.
+     */
+    public static void console(String message) {
+        System.out.println("[" + LocalTime.now().format(TS) + "] [HB-TC01] " + message);
     }
 }

@@ -10,7 +10,9 @@ import com.hepsiburada.utils.CaptchaOrBlockDetector;
 import com.hepsiburada.utils.DriverFactory;
 import com.hepsiburada.utils.StepLogger;
 import com.hepsiburada.utils.TextNormalizer;
+import com.hepsiburada.utils.ValueResolver;
 import com.thoughtworks.gauge.Step;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 
 import java.util.List;
@@ -52,12 +54,14 @@ public class HepsiburadaCartSteps {
         StepLogger.log("ADIM 2: Giris formu goruntulendi.");
     }
 
-    @Step("Gecerli kullanici bilgileriyle giris yap")
-    public void loginWithValidCredentials() {
-        StepLogger.log("ADIM 3: Kimlik bilgileri config'ten okunup giris yapiliyor (insan-gibi yazim)...");
-        // Kimlik bilgileri koda degil env/secrets katmanina aittir.
-        String username = ConfigReader.getRequired("hb.username");
-        String password = ConfigReader.getRequired("hb.password");
+    @Step("Email <emailKey> ve sifre <passwordKey> ile giris yap")
+    public void loginWithCredentialKeys(String emailKey, String passwordKey) {
+        StepLogger.log("ADIM 3: Kimlik bilgileri '" + emailKey + "' / '" + passwordKey
+                + "' anahtarlarindan cozulup giris yapiliyor (insan-gibi yazim)...");
+        // Data_* anahtarlari value-infos uzerinden cozulur; sifrelerin kendisi
+        // values.json'a DEGIL, gitignore'lu env/secrets katmanina isaret eder.
+        String username = ValueResolver.resolve(emailKey);
+        String password = ValueResolver.resolve(passwordKey);
         new LoginPage(driver()).loginWith(username, password);
         StepLogger.log("ADIM 3: Giris denemesi tamamlandi (bot-engel kontrolu yapildi).");
     }
@@ -67,7 +71,7 @@ public class HepsiburadaCartSteps {
         String displayedUsername;
         try {
             displayedUsername = new LoginPage(driver()).getDisplayedUsername();
-        } catch (org.openqa.selenium.TimeoutException e) {
+        } catch (TimeoutException e) {
             // Kullanici adi gorunmediyse once neden'i okunur raporla:
             // OTP ekrani mi (elle bir kez kod girilmeli), bot-engel mi?
             CaptchaOrBlockDetector.checkForOtpChallenge(driver(), "login-dogrulama");

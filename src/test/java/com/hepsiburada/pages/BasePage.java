@@ -25,9 +25,9 @@ public abstract class BasePage {
     protected BasePage(WebDriver driver) {
         this.driver = driver;
         this.waits = new Waits(driver);
-        // Her sayfa nesnesi olusumunda bilgilendirme bandini tazele (idempotent):
-        // kullanici ekrani izlerken testin kontrolde oldugunu her an gorsun.
-        com.hepsiburada.utils.TestRunBanner.show(driver);
+        // Not: Ozel bilgilendirme bandi kaldirildi; Chrome'un YERLI "otomatik
+        // test yazilimi tarafindan kontrol ediliyor" cubugu (qa-web.yaml
+        // showAutomationInfobar=true) yeterli bilgilendirmeyi sagliyor.
     }
 
     /** Kayitli popuplari kapatir; her buyuk aksiyondan once/sonra cagrilabilir. */

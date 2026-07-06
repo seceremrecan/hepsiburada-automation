@@ -1,6 +1,9 @@
 package com.hepsiburada.pages;
 
+import com.hepsiburada.utils.ElementRepository;
+import com.hepsiburada.utils.PopupHandler;
 import org.openqa.selenium.By;
+import org.openqa.selenium.ElementClickInterceptedException;
 import org.openqa.selenium.WebDriver;
 
 /**
@@ -11,10 +14,9 @@ import org.openqa.selenium.WebDriver;
  */
 public class HeaderPage extends BasePage {
 
-    /** URL'nin tamami bilerek hard-code edilmedi; sadece '/sepetim' parcasi kullanildi. */
-    private static final By HEADER_CART_LINK = By.cssSelector("a[href*='/sepetim']");
-    /** Header'daki sepet urun adedi rozeti (cifte-ekleme onleminde kullanilir). */
-    private static final By CART_ITEM_COUNT = By.id("cartItemCount");
+    // Locator'lar element-infos/Header.json deposunda.
+    private static final By HEADER_CART_LINK = ElementRepository.by("link_header_cart");
+    private static final By CART_ITEM_COUNT = ElementRepository.by("badge_cart_item_count");
 
     public HeaderPage(WebDriver driver) {
         super(driver);
@@ -23,7 +25,15 @@ public class HeaderPage extends BasePage {
     /** Header'daki "Sepetim" baglantisiyla sepete gider. */
     public void goToCart() {
         dismissPopups();
-        waits.clickable(HEADER_CART_LINK).click();
+        try {
+            waits.clickable(HEADER_CART_LINK).click();
+        } catch (ElementClickInterceptedException e) {
+            // Acik kalmis bir modal/overlay tiklamayi kesti: overlay'i kaldirip
+            // BIR kez daha dene (korleme tekrar degil, tek seferlik kurtarma).
+            PopupHandler.removeBlockingCheckoutOverlay(driver);
+            dismissPopups();
+            waits.clickable(HEADER_CART_LINK).click();
+        }
     }
 
     /** Header rozetindeki urun adedi metni (gorunmuyorsa bos string). */

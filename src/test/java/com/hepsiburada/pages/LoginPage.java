@@ -2,10 +2,15 @@ package com.hepsiburada.pages;
 
 import com.hepsiburada.config.ConfigReader;
 import com.hepsiburada.utils.CaptchaOrBlockDetector;
+import com.hepsiburada.utils.ElementRepository;
 import com.hepsiburada.utils.HumanTyper;
+import com.hepsiburada.utils.StepLogger;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.interactions.Actions;
+
+import java.time.Duration;
 
 /**
  * Ana sayfadaki "Giris Yap" akisi + iki adimli login formu
@@ -17,31 +22,14 @@ import org.openqa.selenium.WebElement;
  */
 public class LoginPage extends BasePage {
 
-    // DevTools'ta gercek DOM uzerinde dogrulanmis locator'lar (Faz 7).
-    private static final By HEADER_ACCOUNT_AREA = By.cssSelector("[data-test-id='account']");
-    /**
-     * Hesap alanina tiklaninca acilan menudeki "Giris Yap" satiri.
-     * Metin tabanli secici; 2026-07-06 kosusunun fail screenshot'indan dogrulandi.
-     * (Header'daki ana buton "Giris Yap veya uye ol" metnini tasidigi icin
-     * normalize-space esitligi yalnizca menu satirini yakalar.)
-     */
-    private static final By ACCOUNT_MENU_LOGIN_LINK =
-            By.xpath("//*[self::a or self::button][normalize-space()='Giriş Yap']");
-    private static final By EMAIL_OR_PHONE_INPUT = By.id("txtUserName");
-    /**
-     * E-posta adimindaki "devam" butonu ile sifre adimindaki "Giris yap" butonu
-     * ayni id'yi (btnLogin) tasiyor; iki buton ayni anda gorunur olmadigi icin
-     * ayni locator iki asamada da guvenle kullanilabiliyor.
-     */
-    private static final By LOGIN_ACTION_BUTTON = By.cssSelector("button#btnLogin");
-    /**
-     * DOM'da ayni ID'li farkli tipte eleman gorulebildiginden locator
-     * bilerek input etiketiyle sinirlandirildi (input#txtPassword).
-     */
-    private static final By PASSWORD_INPUT = By.cssSelector("input#txtPassword");
-    /** Login sonrasi header'daki "Hesabim" alani (basari kaniti). */
-    private static final By LOGGED_IN_ACCOUNT_LABEL =
-            By.cssSelector("a[data-test-id='account'][title='Hesabım']");
+    // Locator'lar element-infos/Login.json deposunda; kod yalnizca anahtar bilir
+    // (referans mimari: locator degisikligi icin derleme gerekmez).
+    private static final By HEADER_ACCOUNT_AREA = ElementRepository.by("area_header_account");
+    private static final By ACCOUNT_MENU_LOGIN_LINK = ElementRepository.by("link_account_menu_login");
+    private static final By EMAIL_OR_PHONE_INPUT = ElementRepository.by("txt_username");
+    private static final By LOGIN_ACTION_BUTTON = ElementRepository.by("btn_login");
+    private static final By PASSWORD_INPUT = ElementRepository.by("txt_password");
+    private static final By LOGGED_IN_ACCOUNT_LABEL = ElementRepository.by("lbl_account_logged_in");
 
     public LoginPage(WebDriver driver) {
         super(driver);
@@ -68,8 +56,7 @@ public class LoginPage extends BasePage {
     public void goToLoginForm() {
         dismissPopups();
         if (isAlreadyLoggedIn()) {
-            com.hepsiburada.utils.StepLogger.log(
-                    "Kalici profil onceki oturumu hatirliyor — kullanici zaten girisli, login formu atlaniyor.");
+            StepLogger.log("Kullanici zaten girisli (kalici profil) — login formu atlaniyor.");
             return;
         }
         // Site uc davranis gosterebiliyor (kosudan kosuya degisti):
@@ -77,17 +64,13 @@ public class LoginPage extends BasePage {
         //  (b) hesap menusu acilir -> menudeki "Giris Yap"a tiklanmali,
         //  (c) tiklama arada yutuluyor -> hover + yeniden deneme gerekir.
         // Bu yuzden: hover'la tikla, kisa sure sonucu yokla, olmadiysa tekrar dene.
-        org.openqa.selenium.interactions.Actions actions =
-                new org.openqa.selenium.interactions.Actions(driver);
+        Actions actions = new Actions(driver);
         final int maxAttempts = 3;
         for (int attempt = 1; attempt <= maxAttempts; attempt++) {
             WebElement account = waits.clickable(HEADER_ACCOUNT_AREA);
-            actions.moveToElement(account)
-                    .pause(java.time.Duration.ofMillis(300))
-                    .click()
-                    .perform();
+            actions.moveToElement(account).pause(Duration.ofMillis(300)).click().perform();
             // (a) form dogrudan geldi mi? (kisa yoklama)
-            if (waits.isVisibleWithin(EMAIL_OR_PHONE_INPUT, java.time.Duration.ofSeconds(4))) {
+            if (waits.isVisibleWithin(EMAIL_OR_PHONE_INPUT, Duration.ofSeconds(4))) {
                 return;
             }
             // (b) menu acildi mi? GORUNURLUK kontrol edilir — link DOM'da
@@ -111,8 +94,7 @@ public class LoginPage extends BasePage {
      */
     public void loginWith(String emailOrPhone, String password) {
         if (isAlreadyLoggedIn()) {
-            com.hepsiburada.utils.StepLogger.log(
-                    "Kullanici zaten girisli (kalici profil) — kimlik girisi atlaniyor.");
+            StepLogger.log("Kullanici zaten girisli (kalici profil) — kimlik girisi atlaniyor.");
             return;
         }
         // E-posta/telefon alanini doldur

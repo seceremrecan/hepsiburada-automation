@@ -1,7 +1,9 @@
 package com.hepsiburada.utils;
 
 import com.thoughtworks.gauge.AfterScenario;
+import com.thoughtworks.gauge.AfterStep;
 import com.thoughtworks.gauge.BeforeScenario;
+import com.thoughtworks.gauge.BeforeStep;
 import com.thoughtworks.gauge.BeforeSuite;
 import com.thoughtworks.gauge.ExecutionContext;
 
@@ -43,6 +45,29 @@ public class ExecutionHooks {
     @BeforeScenario
     public void setUp() {
         DriverFactory.initDriver();
+    }
+
+    // Adim yasam dongusu loglari (referans mimarideki
+    // "... step started / step has been successfully completed" kalibi).
+    // Konsola yazilir; HTML raporu sisirilmez.
+    @BeforeStep
+    public void beforeStep(ExecutionContext context) {
+        StepLogger.console("step started: " + stepTextOf(context));
+    }
+
+    @AfterStep
+    public void afterStep(ExecutionContext context) {
+        boolean failed = context.getCurrentStep().getIsFailing();
+        StepLogger.console("step " + (failed ? "FAILED" : "has been successfully completed")
+                + ": " + stepTextOf(context));
+    }
+
+    private static String stepTextOf(ExecutionContext context) {
+        try {
+            return context.getCurrentStep().getText();
+        } catch (RuntimeException e) {
+            return "(adim metni okunamadi)";
+        }
     }
 
     @AfterScenario

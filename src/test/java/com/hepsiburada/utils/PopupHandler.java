@@ -56,6 +56,23 @@ public final class PopupHandler {
     }
 
     /**
+     * Checkout modal overlay'ini ([data-test-class='modal_overflow']) DOM'dan
+     * kaldirir. ESC ile kapanmayan "onerilen satici" modalinin kalintisi,
+     * header tiklamalarini kesiyordu (2026-07-06). GENEL dismiss akisina
+     * BILEREK konmadi: sepete-ekleme onay paneli de benzer modal yapisinda
+     * oldugu icin yalnizca guvenli oldugu bilinen noktalarda cagrilir.
+     */
+    public static void removeBlockingCheckoutOverlay(WebDriver driver) {
+        Object removed = ((JavascriptExecutor) driver).executeScript(
+                "const els = document.querySelectorAll(\"[data-test-class='modal_overflow']\");"
+                        + "els.forEach(el => el.remove());"
+                        + "return els.length;");
+        if (removed instanceof Long count && count > 0) {
+            StepLogger.log("Tiklamalari kesen checkout modal overlay'i kaldirildi (adet: " + count + ").");
+        }
+    }
+
+    /**
      * Kayitli tum popuplari kontrol eder, gorunur olanlari kapatir.
      * Her buyuk adimin oncesinde/sonrasinda guvenle cagrilabilir;
      * popup yoksa maliyeti findElements taramasi kadardir (~0).
@@ -66,10 +83,6 @@ public final class PopupHandler {
         Duration shortWait = Duration.ofSeconds(ConfigReader.getInt("popup.check.timeout.seconds"));
         Waits waits = new Waits(driver);
         List<String> dismissed = new ArrayList<>();
-
-        // Sayfa gecislerinde kaybolan bilgilendirme bandini yeniden enjekte et
-        // (bu metot her kritik adimda cagrildigi icin dogal yeniden-cizim noktasi).
-        TestRunBanner.show(driver);
 
         if (dismissEfilliConsentIfPresent(driver)) {
             dismissed.add("Cerez onayi (efilli, shadow DOM)");
