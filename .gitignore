@@ -1,0 +1,23 @@
+# Build output
+target/
+
+# Gauge internals & reports
+.gauge/
+reports/
+logs/
+screenshots/
+chrome-profile/
+
+# Credentials — never commit (real file is created in Phase 2, filled by you)
+env/secrets/credentials.properties
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+
+# Claude Code yerel ayarlari
+.claude/
