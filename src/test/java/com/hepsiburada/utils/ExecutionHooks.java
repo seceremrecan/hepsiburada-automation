@@ -81,7 +81,33 @@ public class ExecutionHooks {
             // Screenshot/rapor sorunu driver'in kapanmasini asla engellememeli.
             System.err.println("[ExecutionHooks] Hata sonrasi screenshot alinamadi: " + e.getMessage());
         } finally {
+            holdBrowserBeforeQuit();
             DriverFactory.quitDriver();
+        }
+    }
+
+    /**
+     * Senaryo bitince tarayiciyi hemen kapatmayip qa-web.yaml'daki
+     * holdBrowserSeconds kadar acik tutar (demo/video icin son ekran gorunur
+     * kalsin). Bu, kosul-tabanli bir bekleme DEGIL bilincli bir "ekrani tut"
+     * duraklamasidir; o yuzden Waits yerine dogrudan burada uygulanir.
+     */
+    private void holdBrowserBeforeQuit() {
+        String raw = com.hepsiburada.config.ConfigReader.get("hold.browser.seconds");
+        int seconds;
+        try {
+            seconds = raw == null ? 0 : Integer.parseInt(raw.trim());
+        } catch (NumberFormatException e) {
+            seconds = 0;
+        }
+        if (seconds <= 0) {
+            return;
+        }
+        StepLogger.console("Tarayici " + seconds + " sn acik tutuluyor (demo icin), sonra kapatilacak...");
+        try {
+            Thread.sleep(seconds * 1000L);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 

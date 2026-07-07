@@ -60,6 +60,7 @@ public final class ConfigReader {
             putIfPresent(props, "timeout.pageload.seconds", yaml.get("pageTimeOut"), false);
             putIfPresent(props, "env", yaml.get("env"), false);
             putIfPresent(props, "show.automation.infobar", yaml.get("showAutomationInfobar"), false);
+            putIfPresent(props, "hold.browser.seconds", yaml.get("holdBrowserSeconds"), false);
             // Ortam URL secimi: env=test -> testUrl, prep -> prepUrl, live -> liveUrl
             String env = props.getProperty("env", "test");
             putIfPresent(props, "app.base.url", yaml.get(env + "Url"), false);

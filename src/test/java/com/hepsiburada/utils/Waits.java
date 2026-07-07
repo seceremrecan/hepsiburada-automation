@@ -59,6 +59,11 @@ public class Waits {
         return newWait(defaultTimeout).until(condition);
     }
 
+    /** Ozel kosul + KISA/ozel timeout (or. "rozet degisti mi?" gibi hizli beklemeler). */
+    public <T> T until(ExpectedCondition<T> condition, Duration timeout) {
+        return newWait(timeout).until(condition);
+    }
+
     /**
      * Varsayilan timeout icinde gorunur olursa true, olmazsa false.
      * "Gorunur mu?" sorgulari icin tek kalip; exception firlatmaz.

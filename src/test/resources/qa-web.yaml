@@ -23,3 +23,7 @@ language: tr
 # true: Chrome'un yerli "otomatik test yazilimi tarafindan kontrol ediliyor"
 # bilgi cubugu gorunur (referans projedeki gibi).
 showAutomationInfobar: true
+
+# Senaryo bitince tarayici KAPANMADAN once beklenecek sure (saniye).
+# Demo/video icin son ekranin gorunur kalmasi amaciyla; 0 = hemen kapat.
+holdBrowserSeconds: 3

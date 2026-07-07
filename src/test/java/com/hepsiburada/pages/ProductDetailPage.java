@@ -147,12 +147,32 @@ public class ProductDetailPage extends BasePage {
             return false;
         }
         waits.clickable(RECOMMENDED_MODAL_ADD_TO_CART).click();
-        boolean added = isProductAddedConfirmationDisplayed() || cartBadgeChanged(badgeBefore);
+        // Modal akisinda "urun sepetinizde" onay mesaji GELMEZ; onu 15sn beklemek
+        // bosuna zaman kaybi. Ekleme kaniti olarak sepet rozetinin degismesini
+        // (veya onay mesajini) kisa bir pencerede yoklariz; ikisinden biri
+        // gorununce hemen doneriz.
+        boolean added = awaitAddProof(badgeBefore, Duration.ofSeconds(5));
         // Bu modal ESC ile kapanmiyor; overlay'i hedefli kaldiririz — ekleme
         // kaniti yukarida alindigi icin guvenli. Aksi halde sonraki header
         // tiklamalarini keser.
         PopupHandler.removeBlockingCheckoutOverlay(driver);
         return added;
+    }
+
+    /**
+     * Ekleme kanitini kisa bir pencerede bekler: sepet rozeti degisirse VEYA
+     * onay mesaji gorunurse true; sure dolarsa false. Full 15sn timeout yerine
+     * hizli, kanit gorununce aninda donen bekleme.
+     */
+    private boolean awaitAddProof(String badgeBefore, Duration timeout) {
+        try {
+            return waits.until(d ->
+                    (cartBadgeChanged(badgeBefore) || isAnyDisplayed(CONFIRMATION_SUCCESS_MESSAGE))
+                            ? Boolean.TRUE : null,
+                    timeout);
+        } catch (TimeoutException e) {
+            return false;
+        }
     }
 
     /** Sepet rozeti eklemeden bu yana degisti mi? (bos rozet degisim sayilmaz) */
