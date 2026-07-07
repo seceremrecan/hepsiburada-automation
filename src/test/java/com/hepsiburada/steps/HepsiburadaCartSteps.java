@@ -168,16 +168,4 @@ public class HepsiburadaCartSteps {
                 .isTrue();
         StepLogger.log("ADIM 10: [ASSERTION 5 OK] Urun sepette dogrulandi: " + selectedProductName);
     }
-
-    @Step("Eklenen urunu sepetten sil ve sepetin temizlendigini dogrula")
-    public void cleanupCart() {
-        StepLogger.log("TEMIZLIK: Eklenen urun (ve onceki kosulardan kalan kopyalari) sepetten siliniyor...");
-        CartPage cart = new CartPage(driver());
-        int removed = cart.removeAllMatchingProducts(selectedProductName);
-        StepLogger.log("TEMIZLIK: Silinen kart adedi: " + removed);
-        assertThat(cart.isProductInCart(selectedProductName))
-                .as("Temizlik sonrasi urun sepette kalmamali")
-                .isFalse();
-        StepLogger.log("TEMIZLIK: Sepet dogrulandi — bir sonraki kosu temiz baslayacak.");
-    }
 }

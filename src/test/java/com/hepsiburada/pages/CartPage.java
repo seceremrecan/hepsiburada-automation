@@ -5,9 +5,7 @@ import com.hepsiburada.utils.TextNormalizer;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,8 +22,6 @@ public class CartPage extends BasePage {
     private static final By CART_ITEMS = ElementRepository.by("card_cart_item");
     /** Kart ICINDE relative aranir; tum sayfadan aranmaz. */
     private static final By ITEM_PRODUCT_LINK = ElementRepository.by("link_cart_item_product");
-    private static final By ITEM_DELETE_BUTTON = ElementRepository.by("btn_cart_item_delete");
-    private static final By DELETE_CONFIRM_BUTTON = ElementRepository.by("btn_delete_confirm");
 
     public CartPage(WebDriver driver) {
         super(driver);
@@ -42,55 +38,11 @@ public class CartPage extends BasePage {
         List<String> names = new ArrayList<>();
         for (WebElement item : driver.findElements(CART_ITEMS)) {
             String name = productNameOf(item);
-            if (!name.isEmpty()) {
+            if (!name.isEmpty()) { // headerdaki kullanıcı adının validasyonu burada yapılyıor
                 names.add(name);
             }
         }
         return names;
-    }
-
-    /**
-     * Ada gore eslesen TUM kartlari sepetten siler (onceki kosulardan kalan
-     * kopyalar dahil) ve silinen adedi dondurur. Boylece her kosu, kendi
-     * ekledigi urunu temizler; bir sonraki kosu temiz sepetle baslar.
-     * Sepetteki BASKA urunlere dokunulmaz.
-     */
-    public int removeAllMatchingProducts(String expectedProductName) {
-        dismissPopups();
-        int removed = 0;
-        final int maxRemovals = 10; // sonsuz donguye karsi guvenlik siniri
-        while (removed < maxRemovals) {
-            WebElement target = findFirstMatchingItem(expectedProductName);
-            if (target == null) {
-                break;
-            }
-            List<WebElement> deleteButtons = target.findElements(ITEM_DELETE_BUTTON);
-            if (deleteButtons.isEmpty()) {
-                throw new IllegalStateException(
-                        "Sepet kartinda silme butonu bulunamadi; element-infos/Sepet.json'daki "
-                                + "'btn_cart_item_delete' locator'i gercek DOM'a gore guncellenmeli.");
-            }
-            scrollIntoCenter(deleteButtons.get(0));
-            deleteButtons.get(0).click();
-            // Onay diyalogu cikarsa "Sil" ile onayla (kisa bekleme; cikmazsa gec).
-            if (waits.isVisibleWithin(DELETE_CONFIRM_BUTTON, Duration.ofSeconds(3))) {
-                waits.clickable(DELETE_CONFIRM_BUTTON).click();
-            }
-            // Kart DOM'dan dusene kadar bekle; sayaci ondan sonra artir.
-            waits.until(ExpectedConditions.stalenessOf(target));
-            removed++;
-            dismissPopups(); // silme sonrasi cikabilecek onay/toast katmanlari
-        }
-        return removed;
-    }
-
-    private WebElement findFirstMatchingItem(String expectedProductName) {
-        for (WebElement item : driver.findElements(CART_ITEMS)) {
-            if (TextNormalizer.matchesLoosely(productNameOf(item), expectedProductName)) {
-                return item;
-            }
-        }
-        return null;
     }
 
     /**

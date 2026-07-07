@@ -14,4 +14,5 @@ tags: login, sepet, smoke
 * Ikinci Satirdaki Ilk Urun Secilir ve Urun Sayfasina Gidilir
 * Urun Sepete Eklenir ve Onay Mesaji Dogrulanir
 * Sepete Gidilir ve Urunun Sepette Oldugu Dogrulanir
-* Sepet Temizlenir
+
+
