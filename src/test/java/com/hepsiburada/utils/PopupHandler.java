@@ -27,7 +27,7 @@ import java.util.List;
  *    DOM disidir; DriverFactory'deki ChromeOptions ile kaynaginda kapatildi.
  *
  * NOT: Bot-engel/CAPTCHA bir "popup" DEGILDIR ve burada kapatilmaz;
- * o durum CaptchaOrBlockDetector'un isidir (tespit + acik fail).
+ * o durum BotDetection'un isidir (tespit + acik fail).
  */
 public final class PopupHandler {
 

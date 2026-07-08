@@ -1,22 +1,35 @@
-# Basariyla Email <email> ve Sifre <sifre> Ile Giris Yapilir
-* Ana sayfayi ac
-* Giris yap sayfasina git
-* Email <email> ve sifre <sifre> ile giris yap
-* Girisin basarili oldugunu dogrula
+# Ana Sayfaya Gidilir
+* Navigate to "https://www.hepsiburada.com"
+* Dismiss popups
 
-# Arama Kutusuna <kelime> Yazilir ve Arama Baslatilir
-* Arama kutusuna <kelime> yazip aramayi baslat
+# Basariyla Email <email> ve Sifre <sifre> Giris Yapilir
+* Find element "area_header_account" and click
+* Click element "link_account_menu_login" if present
+* Find element "txt_username" and sendkey text <email>
+* Click element "btn_login" unless "txt_password" is visible
+* Find element "txt_password" and sendkey text <sifre>
+* Find element "btn_login" and click
+* Verify element "lbl_account_logged_in" is displayed
+
+# <kelime> Aramasi Yapilir
+* Find element "txt_search" and search text <kelime>
 
 # Arama Sonuclarinin <kelime> Icin Yuklendigi Dogrulanir
-* Arama sonuclarinin <kelime> icin yuklendigini dogrula
+* Verify element "grid_search_results" is displayed
+* Current url should contain <kelime>
 
 # Ikinci Satirdaki Ilk Urun Secilir ve Urun Sayfasina Gidilir
-* Ikinci satirdaki ilk urunu belirle
-* Belirlenen urune tikla ve urun detay sayfasina gidildigini dogrula
+* Store attribute "title" of element "link_second_row_first_product" as "urunAdi"
+* Find element "link_second_row_first_product" and click
+* Switch to new tab
+* Verify text of element "lbl_product_title" contains stored "urunAdi"
 
-# Urun Sepete Eklenir ve Onay Mesaji Dogrulanir
-* Urunu sepete ekle ve eklendigine dair onay mesajini dogrula
+# Urun Sepete Eklenir ve Onay Dogrulanir
+* Find element "btn_add_to_cart" and click
+* Click element "btn_recommended_modal_add" if present
+* Verify element "lbl_added_confirmation" or "badge_cart_item_count" is displayed
+* Click element "btn_confirmation_continue" if present
 
 # Sepete Gidilir ve Urunun Sepette Oldugu Dogrulanir
-* Header uzerinden sepete git
-* Eklenen urunun sepette oldugunu dogrula
+* Find element "link_header_cart" and click
+* Verify one of elements "link_cart_item_product" contains stored "urunAdi"

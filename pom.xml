@@ -19,6 +19,7 @@
         <webdrivermanager.version>6.1.0</webdrivermanager.version>
         <gauge-java.version>1.0.1</gauge-java.version>
         <assertj.version>3.27.3</assertj.version>
+        <junit.version>5.11.4</junit.version>
     </properties>
 
     <dependencies>
@@ -46,6 +47,15 @@
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
             <version>${assertj.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Saf mantik (TextNormalizer gibi) icin birim testleri; UI/driver
+             gerektiren siniflar Gauge senaryosuyla uctan uca test edilir. -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
 

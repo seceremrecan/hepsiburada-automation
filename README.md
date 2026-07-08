@@ -1,14 +1,15 @@
 # Hepsiburada UI Automation — HB-TC01
 
 End-to-end shopping scenario for Hepsiburada.com built with **Java 17 + Selenium WebDriver 4 +
-Gauge + Maven** using the Page Object Model (POM):
-**login → search "bilgisayar" → pick the first product of the second row → add to cart →
-verify in cart → clean the cart up**.
+Gauge + Maven**, using a **keyword-driven** architecture (no Page Object Model):
+**login → search "bilgisayar" → pick the first product of the second row → open the product →
+add to cart → verify it is in the cart.**
 
 ## Running
 
 ```bash
-mvn test          # single command: compiles + runs the Gauge scenario
+mvn test                          # compiles + runs the Gauge UI scenario (opens a browser)
+mvn test-compile surefire:test    # only the fast unit tests (no browser)
 ```
 
 - Gauge CLI must be installed and on PATH (with the `java` and `html-report` plugins).
@@ -16,83 +17,92 @@ mvn test          # single command: compiles + runs the Gauge scenario
   dependencies; the gauge-maven-plugin supplies the classpath from Maven.
 - Credentials: `env/secrets/credentials.properties` (gitignored; template at
   `credentials.example.properties`). Alternatively set the `HB_USERNAME` /
-  `HB_PASSWORD` environment variables.
+  `HB_PASSWORD` environment variables — no file needed.
 - HTML report: `reports/html-report/index.html` · Failure screenshots: `screenshots/`
-- Console: every step is logged as `[HH:mm:ss.SSS] [HB-TC01] STEP n: ...`
+- Console: every step is logged as `[HH:mm:ss.SSS] [HB-TC01] ...`
+
+## Expected Results (Assertions)
+
+1. User logs in successfully (username visible in the header).
+2. Search results match the user input (product grid shown + URL contains the term).
+3. Redirected to the second-row first product's page (detail title matches).
+4. Product is added to the cart (confirmation shown).
+5. The added product is visible on the cart screen.
 
 ## Project Layout
 
 ```
-├── pom.xml                     # Maven: dependencies + gauge-maven-plugin (bound to test phase)
-├── manifest.json               # Gauge project descriptor (language: java, plugins)
+├── pom.xml                       # Maven: deps + gauge-maven-plugin (bound to test phase) + JUnit 5
+├── manifest.json                 # Gauge project descriptor (language: java, plugins)
 ├── specs/
-│   └── hepsiburada_cart.spec   # HB-TC01 scenario — human-readable Gauge steps
+│   ├── Scenarios/hepsiburada_sepet.spec    # WHAT: business-language steps (Turkish)
+│   └── Concepts/hepsiburada_tanimlar.cpt    # each business step → generic keyword steps
 ├── env/
-│   ├── default/default.properties      # base URL, browser, timeouts, typing delays
-│   └── secrets/credentials.properties  # credentials (GITIGNORED)
-└── src/test/java/com/hepsiburada/
-    ├── config/   # configuration access
-    ├── pages/    # Page Objects (locators + actions; NO assertions)
-    ├── steps/    # Gauge @Step implementations (assertions live HERE)
-    └── utils/    # driver, waits, popups, bot detection, logging helpers
+│   ├── default/default.properties          # base URL, browser, timeouts, typing delays
+│   └── secrets/credentials.properties       # credentials (GITIGNORED)
+└── src/test/
+    ├── java/com/hepsiburada/
+    │   ├── config/   # ConfigReader — single settings entry point
+    │   ├── steps/    # StepImplementation — the ONE generic keyword-driven step library
+    │   └── utils/    # driver, waits, popups, bot detection, logging helpers
+    └── resources/
+        ├── element-infos/*.json             # locators addressed by KEY (no locators in code)
+        ├── value-infos/<env>/values.json    # "Data_*" test data (passwords via config: layer)
+        ├── qa-web.yaml / browser-options.yaml
+        └── env config
 ```
 
-## Layered Design (why this shape?)
+## Layered Design (keyword-driven)
 
-One-directional flow: **Spec (Gauge) → Steps → Pages → Utils**
+Three layers, each in its own language, so new scenarios can be built **without writing Java** —
+only a spec, a concept, and JSON element/value entries:
 
-1. `specs/*.spec` — WHAT the test does, in plain language. Gauge matches every `*` line
-   to the `@Step` method with the same text.
-2. `steps/` — scenario orchestration + the 5 assertions (AssertJ). State carried between
-   steps (the selected product name) lives here. Because page objects contain no
-   assertions, the same page class can serve different scenarios with different
-   expectations.
-3. `pages/` — locators and actions per page. The driver arrives via constructor
-   injection (no static coupling). Locator rule: dynamic class names (`sc-xyz`, `sf-*`)
-   are banned; stable attributes such as `data-test-id`, `id`, `aria-label` are used.
-4. `utils/` — cross-cutting concerns: driver lifecycle, waits, popup/bot handling.
+1. **`specs/*.spec` — business language (Turkish).** WHAT the test does, sentence by sentence:
+   `* Basariyla Email "Data_Email_User" ve Sifre "Data_Password" Giris Yapilir`.
+2. **`specs/Concepts/*.cpt` — concept layer.** Each business sentence expands into small, reusable
+   **generic keyword steps**: `Find element "txt_username" and sendkey text <email>`,
+   `Verify element "lbl_account_logged_in" is displayed`, …
+3. **`steps/StepImplementation` — generic implementations.** No step is tied to a specific page or
+   button; every step takes an element **key** (resolved from `element-infos/*.json`) and/or a text
+   value. Actions and assertions (AssertJ) both live here.
+
+Supporting data lives outside the code:
+- **Locators** in `element-infos/*.json`, addressed by key (`txt_username`, `btn_add_to_cart`, …).
+  Dynamic class names are avoided; stable attributes (`data-test-id`, `id`, `aria-label`) are used.
+- **Test data** in `value-infos/<env>/values.json` via `Data_*` keys; passwords are never stored
+  here — they resolve through `config:hb.password` to the gitignored credentials layer.
 
 ## File Guide
-
-### config/
-| File | Purpose |
-|---|---|
-| `ConfigReader` | Single entry point for all settings. Priority: `-D` system property > environment variable > properties file. Missing required values fail with a message that says exactly which file to fill in. |
-
-### pages/
-| File | Purpose |
-|---|---|
-| `BasePage` | Shared parent: `driver`, `waits`, `dismissPopups()`, `scrollIntoCenter()` (click-interception guard) and refreshing the test banner. |
-| `LoginPage` | Home page opening + login flow. Adapts to the site's A/B behaviours (direct login page / account menu / swallowed click → hover-and-retry). CAPTCHA check right after submit. Handles one-step and two-step login forms. Skips login entirely when the persistent profile already holds a session. |
-| `HeaderPage` | Header navigation: cart link + cart item count badge. |
-| `SearchResultsPage` | Search (typing retry that verifies the value actually landed in the box) and second-row-first-product selection via on-screen **Y coordinates** (no column-count assumption); ad cards without a product link are filtered out; switches to the new tab when the product opens in one. |
-| `ProductDetailPage` | Product title, Add to Cart, confirmation panel (UUID id matched with `starts-with`). Falls back to the cart badge when the panel does not show; tolerates the "recommended seller" modal by logging instead of throwing. |
-| `CartPage` | Scans cart items by name (no index assumptions, other products untouched). `removeAllMatchingProducts` deletes the added product (and its duplicates) including the confirm dialog, so the next run starts with a clean cart. |
 
 ### steps/
 | File | Purpose |
 |---|---|
-| `HepsiburadaCartSteps` | 12 `@Step` methods; the 5 assertions placed exactly where the task document requires. Every step logs via `StepLogger`. |
+| `StepImplementation` | The single generic keyword-driven step library. Steps: navigate, dismiss popups, click / click-if-present / click-unless-visible (handles one-step **and** two-step login forms), type, type-and-search (resilient to Hepsiburada's search-box swap), store attribute, switch tab, verify displayed / url contains / text contains stored / one-of contains stored. |
+
+### config/
+| File | Purpose |
+|---|---|
+| `ConfigReader` | Single entry point for all settings. Priority: `-D` system property > environment variable > properties/yaml file. Missing required values fail with a message naming exactly which file to fill in. |
 
 ### utils/
 | File | Purpose |
 |---|---|
-| `DriverFactory` | Hardened Chrome lifecycle (automation flags off, notifications blocked, maximized window, ThreadLocal). Optional persistent profile (`chrome.profile.dir`) so the site remembers the device and stops asking for SMS codes. Implicit waits deliberately absent. |
-| `ExecutionHooks` | Gauge lifecycle: driver per scenario, screenshot on failure, screenshots folder cleaned at suite start. |
+| `DriverFactory` | Hardened Chrome lifecycle (automation flags, notifications blocked, ThreadLocal). Optional persistent profile (`chrome.profile.dir`) so the site remembers the device and stops asking for SMS codes. Implicit waits deliberately absent. |
+| `ExecutionHooks` | Gauge lifecycle: driver per scenario, screenshot on failure, screenshots folder cleaned at suite start, `holdBrowserSeconds` pause before closing (for demo/video). |
 | `Waits` | The ONE waiting mechanism (`Thread.sleep` is banned). Only genuinely transient exceptions (stale element, execution-context) are retried. |
-| `PopupHandler` | Registry-based popup dismissal + closing the `<efilli-layout-dynamic>` cookie banner from inside its **shadow DOM** via JS. |
-| `CaptchaOrBlockDetector` | CAPTCHA / bot-wall **detection** (never bypass): DOM markers + text scan; on hit → screenshot + `BotDetectionException`. Also detects SMS/OTP challenge screens → `OtpRequiredException` with a human-readable fix. |
-| `BotDetectionException` / `OtpRequiredException` | Readable failures carrying context, trigger marker and screenshot path. |
+| `ElementRepository` | Resolves an element **key** to a Selenium `By` from `element-infos/*.json`. |
+| `ValueResolver` | Resolves `Data_*` keys from `value-infos`; `config:x.y` delegates to `ConfigReader` so secrets stay out of the data files. |
+| `PopupHandler` | Registry-based popup dismissal + closing the cookie banner from inside its **shadow DOM** via JS; targeted removal of a blocking checkout overlay. |
+| `BotDetection` | CAPTCHA / bot-wall **detection** (never bypass): DOM markers + text scan → screenshot + `BlockedException`. Also detects SMS/OTP screens → `OtpRequiredException` with a human-readable fix. Wired into navigation and the display verifications. |
 | `HumanTyper` | Human-like typing with randomized per-key delays (W3C Actions `pause`, not `Thread.sleep`). |
-| `TestRunBanner` | "This page is being controlled by an automated test" banner at the top of every page; `pointer-events:none` (never intercepts clicks), self-healing keeper re-adds it if the page removes it. |
 | `StepLogger` | One call logs to both the console (timestamped) and the Gauge HTML report. |
 | `ScreenshotUtil` | Timestamped PNGs under `screenshots/`. |
-| `TextNormalizer` | Shared normalization for product-name comparison (Turkish-locale lowercase, whitespace collapsing). |
+| `TextNormalizer` | Shared normalization for product-name comparison (Turkish-locale lowercase, whitespace collapsing). Covered by `TextNormalizerTest` (JUnit 5). |
 
 ## Ground Rules
 - No `Thread.sleep`; every wait is conditional (`WebDriverWait`).
 - No credentials or URLs in source code; everything lives in the config/env layer.
 - CAPTCHA / bot protection is never bypassed: it is detected, screenshotted and
   reported as a readable failure. Same policy for SMS/OTP codes.
-- The test works against a real account's cart; the scenario deletes what it added,
-  but products left over from other sources must be removed manually.
+- The scenario leaves the product in the cart (natural end state); each run does not
+  depend on a clean cart because the "in cart" check matches the product by name.

@@ -22,5 +22,11 @@
     "type": "css",
     "value": "a[title][href*='-p-']",
     "description": "Kart icindeki urun linki; urun adi title attribute'unda (karta GORELI aranir)"
+  },
+  {
+    "key": "link_second_row_first_product",
+    "type": "xpath",
+    "value": "(//li[@type='cozy'][.//a[@title and contains(@href,'-p-')]])[5]//a[@title and contains(@href,'-p-')]",
+    "description": "Ikinci satirdaki ilk urunun linki. 4 kolonlu grid'de 2. satir 1. urun = 5. urun karti (index tabanli sade locator)."
   }
 ]
