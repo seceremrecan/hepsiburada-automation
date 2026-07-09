@@ -17,7 +17,7 @@ testUrl: https://www.hepsiburada.com
 prepUrl: https://www.hepsiburada.com
 liveUrl: https://www.hepsiburada.com
 
-waitPageLoad: true
+waitPageLoad: false
 language: tr
 
 # true: Chrome'un yerli "otomatik test yazilimi tarafindan kontrol ediliyor"
@@ -27,3 +27,4 @@ showAutomationInfobar: true
 # Senaryo bitince tarayici KAPANMADAN once beklenecek sure (saniye).
 # Demo/video icin son ekranin gorunur kalmasi amaciyla; 0 = hemen kapat.
 holdBrowserSeconds: 3
+
