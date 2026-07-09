@@ -1,0 +1,106 @@
+name: CI
+
+# Her push ve PR'da HIZLI ve DETERMINISTIK isler kosar (derleme + birim testler
+# + konfigurasyon dogrulama). Gercek tarayici senaryosu (UI/E2E) BILEREK her
+# commit'te kosmaz: canli siteye, gercek hesaba ve bot korumasina bagimli oldugu
+# icin CI'da kararsiz (flaky) olurdu. UI testi elle tetiklenir (workflow_dispatch).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:        # UI testini elle calistirmak icin
+
+jobs:
+  # ---------------------------------------------------------------------
+  # Her commit'te kosan hizli dogrulama (tarayici YOK, saniyeler surer)
+  # ---------------------------------------------------------------------
+  build-and-verify:
+    name: Derleme + Birim Testler + Config Dogrulama
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Kodu al
+        uses: actions/checkout@v4
+
+      - name: Java 17 kur (Maven cache ile)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Derle (tum test kaynaklari)
+        run: mvn -B test-compile
+
+      - name: Birim testleri kosa (tarayici gerektirmez)
+        run: mvn -B surefire:test
+
+      - name: element-infos JSON dosyalari gecerli mi?
+        run: |
+          for f in src/test/resources/element-infos/*.json; do
+            echo "Kontrol: $f"
+            jq empty "$f" || { echo "GECERSIZ JSON: $f"; exit 1; }
+          done
+
+      - name: Locator anahtarlari benzersiz mi? (cift tanim CI'da yakalanir)
+        run: |
+          DUPES=$(jq -r '.[].key' src/test/resources/element-infos/*.json | sort | uniq -d)
+          if [ -n "$DUPES" ]; then
+            echo "Cift tanimli element key(ler)i bulundu:"; echo "$DUPES"; exit 1
+          fi
+          echo "Tum element anahtarlari benzersiz."
+
+      - name: Sifre/kimlik bilgisi sizintisi var mi?
+        run: |
+          # Gercek kimlik dosyasi repoda ASLA olmamali (.gitignore'da)
+          if git ls-files --error-unmatch env/secrets/credentials.properties 2>/dev/null; then
+            echo "HATA: credentials.properties git'e eklenmis!"; exit 1
+          fi
+          echo "Kimlik bilgisi dosyasi repoda degil (beklenen)."
+
+  # ---------------------------------------------------------------------
+  # Gercek UI senaryosu — SADECE elle tetiklendiginde (workflow_dispatch).
+  # Canli siteye baglidir; bot korumasi/CAPTCHA cikarsa okunur sekilde fail eder.
+  # ---------------------------------------------------------------------
+  ui-test:
+    name: UI Senaryosu (elle tetiklenir)
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Kodu al
+        uses: actions/checkout@v4
+
+      - name: Java 17 kur
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Gauge CLI ve eklentilerini kur
+        run: |
+          curl -SsL https://downloads.gauge.org/stable | sh -s -- --location="$HOME/bin"
+          echo "$HOME/bin" >> "$GITHUB_PATH"
+          export PATH="$HOME/bin:$PATH"
+          gauge install java
+          gauge install html-report
+
+      - name: UI senaryosunu kosa (headless)
+        env:
+          # Kimlik bilgileri koda/repoya girmez; GitHub Secrets'tan gelir.
+          HB_USERNAME: ${{ secrets.HB_USERNAME }}
+          HB_PASSWORD: ${{ secrets.HB_PASSWORD }}
+        run: mvn -B test -Dheadless=true
+
+      - name: Raporu ve ekran goruntulerini yukle (hata olsa da)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-raporu
+          path: |
+            reports/
+            screenshots/
+          retention-days: 7

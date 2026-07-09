@@ -1,5 +1,7 @@
 # Hepsiburada UI Automation — HB-TC01
 
+[![CI](https://github.com/seceremrecan/hepsiburada-automation/actions/workflows/ci.yml/badge.svg)](https://github.com/seceremrecan/hepsiburada-automation/actions/workflows/ci.yml)
+
 End-to-end shopping scenario for Hepsiburada.com built with **Java 17 + Selenium WebDriver 4 +
 Gauge + Maven**, using a **keyword-driven** architecture (no Page Object Model):
 **login → search "bilgisayar" → pick the first product of the second row → open the product →
@@ -11,6 +13,20 @@ add to cart → verify it is in the cart.**
 mvn test                          # compiles + runs the Gauge UI scenario (opens a browser)
 mvn test-compile surefire:test    # only the fast unit tests (no browser)
 ```
+
+## Continuous Integration
+
+`.github/workflows/ci.yml` runs on every push and pull request:
+
+| Job | Trigger | What it does |
+|---|---|---|
+| **build-and-verify** | every push / PR | Compiles, runs the JUnit unit tests (no browser), validates every `element-infos/*.json`, fails on duplicate locator keys, and asserts that the credentials file is **never** committed. Fast and deterministic — stays green. |
+| **ui-test** | manual (`workflow_dispatch`) | Installs the Gauge CLI and runs the real browser scenario headless, taking credentials from GitHub Secrets (`HB_USERNAME` / `HB_PASSWORD`). Uploads the HTML report and failure screenshots as artifacts. |
+
+The live UI scenario is deliberately **not** run on every commit: it depends on a live
+site, a real account and the site's bot protection, which would make CI flaky. This is
+standard practice — fast, deterministic checks gate every commit; end-to-end runs are
+triggered on demand.
 
 - Gauge CLI must be installed and on PATH (with the `java` and `html-report` plugins).
 - Run via `mvn test`, **not** `gauge run`: Gauge's own compiler cannot see Maven
