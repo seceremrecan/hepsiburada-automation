@@ -58,6 +58,11 @@ public class StepImplementation {
                 "arguments[0].scrollIntoView({block:'center'});", element);
     }
 
+    /** Tiklamayi kesen bir katman (reklam bandi, sabit header, modal) varsa JS ile tiklar. */
+    private void jsClick(WebElement element) {
+        ((JavascriptExecutor) driver()).executeScript("arguments[0].click();", element);
+    }
+
     // ------------------------------------------------------------------
     // Navigasyon / genel
     // ------------------------------------------------------------------
@@ -96,7 +101,14 @@ public class StepImplementation {
             // Acik kalmis bir modal/overlay tiklamayi kesti: kaldirip bir kez daha dene.
             PopupHandler.removeBlockingCheckoutOverlay(driver());
             dismissPopups();
-            waits().clickable(by).click();
+            try {
+                waits().clickable(by).click();
+            } catch (ElementClickInterceptedException stillIntercepted) {
+                // Kaldirilamayan katman (ornegin sayfanin tepesindeki reklam bandi)
+                // hedefin uzerine biniyor: son care olarak JS ile tikla.
+                StepLogger.log("'" + key + "' tiklamasi kesildi; JS ile tiklaniyor.");
+                jsClick(driver().findElement(by));
+            }
         }
     }
 
@@ -110,7 +122,14 @@ public class StepImplementation {
         try {
             WebElement element = driver().findElement(by);
             scrollIntoCenter(element);
-            element.click();
+            try {
+                element.click();
+            } catch (ElementClickInterceptedException intercepted) {
+                // Element GORUNUYOR ama uzerine bir katman binmis (reklam bandi vb.).
+                // Adim opsiyonel olsa da element mevcut; tiklamayi atlamak yerine JS ile tikla.
+                StepLogger.log("Opsiyonel '" + key + "' tiklamasi kesildi; JS ile tiklaniyor.");
+                jsClick(element);
+            }
             StepLogger.log("Opsiyonel: '" + key + "' elementine tiklandi.");
         } catch (WebDriverException e) {
             StepLogger.log("Opsiyonel '" + key + "' tiklanamadi, gecildi: " + e.getMessage());
