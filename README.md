@@ -1,6 +1,7 @@
 # Hepsiburada UI Automation — HB-TC01
 
 [![CI](https://github.com/seceremrecan/hepsiburada-automation/actions/workflows/ci.yml/badge.svg)](https://github.com/seceremrecan/hepsiburada-automation/actions/workflows/ci.yml)
+> The badge above reflects the latest `build-and-verify` run on `main`.
 
 End-to-end shopping scenario for Hepsiburada.com built with **Java 17 + Selenium WebDriver 4 +
 Gauge + Maven**, using a **keyword-driven** architecture (no Page Object Model):
